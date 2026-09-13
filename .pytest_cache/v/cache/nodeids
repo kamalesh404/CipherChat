@@ -1,0 +1,13 @@
+[
+  "tests/test_api.py::test_duplicate_register",
+  "tests/test_api.py::test_health",
+  "tests/test_api.py::test_poll_empty",
+  "tests/test_api.py::test_register_and_list",
+  "tests/test_api.py::test_websocket",
+  "tests/test_crypto.py::test_aes_associated",
+  "tests/test_crypto.py::test_aes_roundtrip",
+  "tests/test_crypto.py::test_ecdh_shared",
+  "tests/test_crypto.py::test_pub_from_priv",
+  "tests/test_crypto.py::test_ratchet_dh",
+  "tests/test_crypto.py::test_ratchet_forward"
+]
