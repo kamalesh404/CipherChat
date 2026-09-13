@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CipherChat — E2E Encrypted Chat</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+<h1>🔐 CipherChat</h1>
+<p>End-to-end encrypted — X25519 + AES-GCM + Double Ratchet</p>
+<div id="status" class="pill">disconnected</div>
+</header>
+<main>
+<section class="card">
+<h2>Identity</h2>
+<div class="row">
+<input id="username" placeholder="your username">
+<button id="connectBtn">Connect</button>
+</div>
+<div id="peerBox" class="row" style="display:none">
+<input id="peer" placeholder="peer username">
+<button id="loadPeerBtn">Load peer key</button>
+<span id="peerKey" class="mono"></span>
+</div>
+</section>
+<section class="card">
+<h2>Chat</h2>
+<div id="messages" class="messages"></div>
+<div class="row">
+<input id="msgInput" placeholder="type a message" disabled>
+<button id="sendBtn" disabled>Send</button>
+</div>
+</section>
+<section class="card">
+<h2>Security info</h2>
+<ul>
+<li>Keys: X25519 (ECDH) — 32-byte</li>
+<li>Cipher: AES-GCM (12-byte nonce)</li>
+<li>KDF: HKDF-SHA256</li>
+<li>Ratchet: symmetric + DH rotation for forward secrecy</li>
+<li>Server never sees plaintext — only nonce+ciphertext</li>
+</ul>
+</section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
