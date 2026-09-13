@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.egg-info/
+.venv/
+env/
+.cipherchat/
+# OS
+.DS_Store
