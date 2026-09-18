@@ -14,6 +14,7 @@ from src.core.config import Config
 from src.core.models import RegisterRequest, RegisterResponse, UserRecord, MessageEnvelope
 from src.core.store import Store
 from src.api.rate_limiter import RateLimiter
+from src.api.health import HealthChecker
 
 
 def build_app(config: Config | None = None) -> FastAPI:
@@ -21,12 +22,13 @@ def build_app(config: Config | None = None) -> FastAPI:
     app = FastAPI(title="CipherChat", version="0.1.0")
     store = Store(config.db_path)
     limiter = RateLimiter(max_tokens=30, refill_rate=1.0)
+    health_checker = HealthChecker()
     # username -> set of websockets
     connections: Dict[str, Set[WebSocket]] = {}
 
     @app.get("/health")
     def health():
-        return {"status": "healthy", "version": "0.1.0"}
+        return health_checker.check().to_dict()
 
     @app.post("/v1/register", response_model=RegisterResponse)
     def register(req: RegisterRequest):
@@ -63,6 +65,7 @@ def build_app(config: Config | None = None) -> FastAPI:
     async def ws_endpoint(ws: WebSocket, username: str):
         await ws.accept()
         connections.setdefault(username, set()).add(ws)
+        health_checker.connection_opened()
         # Deliver any queued messages on connect
         for env in store.dequeue_all(username):
             await ws.send_text(json.dumps({"type": "message", "payload": env.model_dump()}))
@@ -101,6 +104,7 @@ def build_app(config: Config | None = None) -> FastAPI:
             pass
         finally:
             connections.get(username, set()).discard(ws)
+            health_checker.connection_closed()
             if not connections.get(username):
                 limiter.reset(username)
 
