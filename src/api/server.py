@@ -13,12 +13,14 @@ import os
 from src.core.config import Config
 from src.core.models import RegisterRequest, RegisterResponse, UserRecord, MessageEnvelope
 from src.core.store import Store
+from src.api.rate_limiter import RateLimiter
 
 
 def build_app(config: Config | None = None) -> FastAPI:
     config = config or Config.from_env()
     app = FastAPI(title="CipherChat", version="0.1.0")
     store = Store(config.db_path)
+    limiter = RateLimiter(max_tokens=30, refill_rate=1.0)
     # username -> set of websockets
     connections: Dict[str, Set[WebSocket]] = {}
 
@@ -67,6 +69,11 @@ def build_app(config: Config | None = None) -> FastAPI:
         try:
             while True:
                 raw = await ws.receive_text()
+                if not limiter.allow(username):
+                    await ws.send_text(
+                        json.dumps({"type": "error", "payload": {"msg": "rate limited, slow down"}})
+                    )
+                    continue
                 try:
                     data = json.loads(raw)
                 except json.JSONDecodeError:
@@ -94,6 +101,8 @@ def build_app(config: Config | None = None) -> FastAPI:
             pass
         finally:
             connections.get(username, set()).discard(ws)
+            if not connections.get(username):
+                limiter.reset(username)
 
     # Static frontend if present
     static_dir = os.path.join(os.path.dirname(__file__), "..", "frontend")
